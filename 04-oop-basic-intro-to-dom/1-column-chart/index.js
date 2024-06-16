@@ -12,8 +12,9 @@ export default class ColumnChart {
     this.link = link;
     this.data = data;
     this.value = value;
-    this.element = this.createElement(this.createTemplate);
     this.formatHeading = formatHeading;
+    this.element = this.createElement(this.createTemplate());
+
   }
 
   createElement(template) {
@@ -28,7 +29,7 @@ export default class ColumnChart {
 
     return this.data.map((item) => {
       return {
-        percent: ((item / maxValue) * 100).toFixed(0) + "%",
+        percent: ((item / maxValue) * 100).toFixed(0),
         value: String(Math.floor(item * scale)),
       };
     });
@@ -36,7 +37,7 @@ export default class ColumnChart {
 
   createLinkTemplate() {
     if (this.link) {
-      return `<a href="${link}" class="column-chart__link">View all</a>`;
+      return `<a href="${this.link}" class="column-chart__link">View all</a>`;
     }
     return "";
   }
@@ -51,12 +52,12 @@ export default class ColumnChart {
   }
 
   createChartClasses() {
-    return this.data.length ? "column-chart" : "column-chart column-chart__loading";
+    return this.data.length ? "column-chart" : "column-chart column-chart_loading";
   }
 
   createTemplate() {
     return (`
-    <div class="${this.createChartClasses}" style="--chart-height: 50">
+    <div class="${this.createChartClasses()}" style="--chart-height: 50">
       <div class="column-chart__title">
         ${this.label}  
         ${this.createLinkTemplate()}     
