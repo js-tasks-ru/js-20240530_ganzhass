@@ -21,15 +21,16 @@ export default class SortableTable {
 
     var tblBody = document.createElement("tbody");
     tblBody.className = "sortable-table";
+    var headerRow = document.createElement("tr");
+    headerRow.className = "sortable-table__header";
 
     for (var k = 0; k <= this.headerConfig.length; k++) {
       var headerT = document.createElement("th");
-      headerT.className = "sortable-table__header";
-      var headerText = document.createTextNode("header " + k);
+      var headerText = document.createTextNode(this.headerConfig[k].id);
       headerT.appendChild(headerText);
-
-      tblBody.appendChild(headerT);
+      headerRow.appendChild(headerT);
     }
+    tblBody.appendChild(headerRow);
 
     // cells creation
     for (var j = 0; j <= this.headerConfig.length; j++) {
