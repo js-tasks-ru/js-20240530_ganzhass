@@ -1,7 +1,7 @@
 export default class NotificationMessage {
   static currVisibleComponent;
-
-  constructor(message = "", { duration = 2000, type = "success" }) {
+  element;
+  constructor(message = "Hello", { duration = 2000, type = "success" }) {
     this.message = message;
     this.duration = duration;
     this.type = type;
@@ -13,7 +13,7 @@ export default class NotificationMessage {
 
     element.innerHTML = `
     <div class = "notification ${this.type}  inner-wrapper" style="--value: 30">
-      <div class = "timer" style="--value: ${this.t}}"></div>
+      <div class = "timer" style="--value: 10"}}"></div>
       <div class = "notification-header">Notification</div>
       <div class = "notification-body">${this.message}</div>
     </div>
@@ -28,17 +28,17 @@ export default class NotificationMessage {
     }
     NotificationMessage.currVisibleComponent = this;
 
-    let dt = new Date().getTime();
-    this.t = setInterval(function () {
-      // NOTE: почему:
-      // duration = underfined
-      // console.log(this.duration);
-      // console.log(
-      //   "показываем в консоли сколько прошлo = ",
-      //   this.duration - new Date().getTime() - dt
-      // );
-    }, this.duration / 10);
-    console.log(this.t);
+    // let dt = new Date().getTime();
+    // this.t = setInterval(function () {
+    //   // NOTE: почему:
+    //   // duration = underfined
+    //   // console.log(this.duration);
+    //   // console.log(
+    //   //   "показываем в консоли сколько прошлo = ",
+    //   //   this.duration - new Date().getTime() - dt
+    //   // );
+    // }, this.duration / 10);
+    // console.log(this.t);
 
     this.timerID = setTimeout(() => {
       this.destroy();
@@ -52,7 +52,6 @@ export default class NotificationMessage {
 
   destroy() {
     clearTimeout(this.timerID);
-    clearInterval(this.t);
     this.remove();
   }
 }
