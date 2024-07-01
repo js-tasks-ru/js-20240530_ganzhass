@@ -12,58 +12,136 @@ export default class SortableTable {
   }
 
   createTemplate() {
-    //body reference
-    var body = document.getElementsByTagName("body")[0];
-
-    // create elements <table> and a <tbody>
+    // var body = document.getElementsByTagName("body")[0];
     var tbl = document.createElement("table");
-    tbl.className = "sortable-table";
 
-    var tblBody = document.createElement("tbody");
-    tblBody.className = "sortable-table";
     var headerRow = document.createElement("tr");
-    headerRow.className = "sortable-table__header";
+    headerRow.className = "sortable-table__header sortable-table__cell";
 
-    for (var k = 0; k <= this.headerConfig.length; k++) {
+    for (var k = 0; k < this.headerConfig.length; k++) {
       var headerT = document.createElement("th");
       var headerText = document.createTextNode(this.headerConfig[k].id);
       headerT.appendChild(headerText);
+      headerT.className = "sortable-table__cell";
       headerRow.appendChild(headerT);
     }
-    tblBody.appendChild(headerRow);
+    tbl.appendChild(headerRow);
 
-    // cells creation
-    for (var j = 0; j <= this.headerConfig.length; j++) {
-      // table row creation
+    var tblBody = document.createElement("tbody");
+    for (var j = 0; j < this.data.length; j++) {
       var row = document.createElement("tr");
       row.className = "sortable-table__row";
-      for (var i = 0; i < this.headerConfig.length; i++) {
-        // create element <td> and text node
-        //Make text node the contents of <td> element
-        // put <td> at end of the table row
-        var cell = document.createElement("td");
-        cell.className = "sortable-table__cell";
+      var cell;
 
-        var cellText = document.createTextNode(
-          "cell is row " + j + ", column " + i
-        );
+      row.appendChild(this.createRowImages(this.data[j]));
+      row.appendChild(this.createRowTitle(this.data[j]));
+      row.appendChild(this.createRowQuantity(this.data[j]));
+      row.appendChild(this.createRowPrice(this.data[j]));
+      row.appendChild(this.createRowSales(this.data[j]));
 
-        cell.appendChild(cellText);
-        row.appendChild(cell);
-      }
-
-      //row added to end of table body
       tblBody.appendChild(row);
     }
 
-    // append the <tbody> inside the <table>
     tbl.appendChild(tblBody);
-    // put <table> in the <body>
-    body.appendChild(tbl);
-    // tbl border attribute to
-    tbl.setAttribute("border", "2");
+    tblBody.className = "sortable-table ";
+    document.body.appendChild(tbl);
+    tbl.className = "sortable-table";
   }
-  sort(fieldValue, orderValue) {}
+
+  createRowImages(data) {
+    let img = new Image();
+    img.src = data.images[0].url;
+    img.className = "sortable-table__cell-img";
+    var cell = document.createElement("td");
+    cell.appendChild(img);
+    cell.className = "sortable-table__cell ";
+    return cell;
+  }
+
+  createRowText(data, headerRow = "aaa") {
+    console.log(headerRow);
+    var cell = document.createElement("td");
+    var cellText = document.createTextNode(data[headerRow]);
+
+    cell.appendChild(cellText);
+    cell.className = "sortable-table__cell ";
+    return cell;
+  }
+
+  createRowTitle(data) {
+    var cell = document.createElement("td");
+    var cellText = document.createTextNode(data.title);
+    cell.appendChild(cellText);
+    cell.className = "sortable-table__cell ";
+    return cell;
+  }
+
+  createRowQuantity(data) {
+    var cell = document.createElement("td");
+    var cellText = document.createTextNode(data.quantity);
+    cell.appendChild(cellText);
+    cell.className = "sortable-table__cell ";
+    return cell;
+  }
+
+  createRowPrice(data) {
+    var cell = document.createElement("td");
+    var cellText = document.createTextNode(data.price);
+    cell.appendChild(cellText);
+    cell.className = "sortable-table__cell ";
+    return cell;
+  }
+
+  createRowSales(data) {
+    var cell = document.createElement("td");
+    var cellText = document.createTextNode(data.sales);
+    cell.appendChild(cellText);
+    cell.className = "sortable-table__cell ";
+    return cell;
+  }
+
+  sort(fieldValue, orderValue) {
+    var colNum;
+    var k = orderValue === "asc" ? 1 : -1;
+
+    if (fieldValue === "title") {
+      colNum = 1;
+    } else if (fieldValue === "quantity") {
+      colNum = 2;
+    } else if (fieldValue === "price") {
+      colNum = 3;
+    } else if (fieldValue === "sales") {
+      colNum = 4;
+    } else {
+      return;
+    }
+
+    let tbody = document.body.querySelector("tbody");
+    let rowsArray = Array.from(tbody.rows);
+    let compare;
+
+    switch (typeof fieldValue) {
+      case "number":
+        compare = function (rowA, rowB) {
+          return (
+            k * (rowA.cells[colNum].innerHTML - rowB.cells[colNum].innerHTML)
+          );
+        };
+        break;
+      case "string":
+        compare = function (rowA, rowB) {
+          return rowA.cells[colNum].innerHTML > rowB.cells[colNum].innerHTML
+            ? k * 1
+            : k * -1;
+        };
+        break;
+    }
+
+    rowsArray.sort(compare);
+
+    tbody.append(...rowsArray);
+  }
+
   remove() {
     this.element.remove();
   }
