@@ -1,8 +1,12 @@
-export default class SortableTable {
+export default class SortableTableV1 {
+  element;
+  subElements;
+
   constructor(headerConfig = [], data = []) {
     this.headerConfig = headerConfig;
     this.data = data;
     this.element = this.createElement(this.createTemplate());
+    this.subElements = this.getSubElements();
   }
 
   createElement(template) {
@@ -12,134 +16,105 @@ export default class SortableTable {
   }
 
   createTemplate() {
-    // var body = document.getElementsByTagName("body")[0];
-    var tbl = document.createElement("table");
-
-    var headerRow = document.createElement("tr");
-    headerRow.className = "sortable-table__header sortable-table__cell";
-
-    for (var k = 0; k < this.headerConfig.length; k++) {
-      var headerT = document.createElement("th");
-      var headerText = document.createTextNode(this.headerConfig[k].id);
-      headerT.appendChild(headerText);
-      headerT.className = "sortable-table__cell";
-      headerRow.appendChild(headerT);
-    }
-    tbl.appendChild(headerRow);
-
-    var tblBody = document.createElement("tbody");
-    for (var j = 0; j < this.data.length; j++) {
-      var row = document.createElement("tr");
-      row.className = "sortable-table__row";
-      var cell;
-
-      row.appendChild(this.createRowImages(this.data[j]));
-      row.appendChild(this.createRowTitle(this.data[j]));
-      row.appendChild(this.createRowQuantity(this.data[j]));
-      row.appendChild(this.createRowPrice(this.data[j]));
-      row.appendChild(this.createRowSales(this.data[j]));
-
-      tblBody.appendChild(row);
-    }
-
-    tbl.appendChild(tblBody);
-    tblBody.className = "sortable-table ";
-    document.body.appendChild(tbl);
-    tbl.className = "sortable-table";
+    return `
+      <div data-element="productsContainer" class="products-list__container">
+        <div class="sortable-table">
+          <div data-element="header" class="sortable-table__header sortable-table__row">
+              ${this.createHeaderTemplate(this.headerConfig)}
+          </div>
+          <div data-element="body" class="sortable-table__body">
+              ${this.createBodyTemplate(this.headerConfig, this.data)}
+          </div>
+          <div data-element="loading" class="loading-line sortable-table__loading-line"></div>
+          <div data-element="emptyPlaceholder" class="sortable-table__empty-placeholder">
+            <div>
+              <p>No products satisfies your filter criteria</p>
+              <button type="button" class="button-primary-outline">Reset all filters</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
-  createRowImages(data) {
-    let img = new Image();
-    img.src = data.images[0].url;
-    img.className = "sortable-table__cell-img";
-    var cell = document.createElement("td");
-    cell.appendChild(img);
-    cell.className = "sortable-table__cell ";
-    return cell;
+  getSubElements() {
+    const elements = this.element.querySelectorAll("[data-element]");
+
+    const accumulateSubElements = (subElements, currentElement) => {
+      subElements[currentElement.dataset.element] = currentElement;
+
+      return subElements;
+    };
+
+    return [...elements].reduce(accumulateSubElements, {});
   }
 
-  createRowText(data, headerRow = "aaa") {
-    console.log(headerRow);
-    var cell = document.createElement("td");
-    var cellText = document.createTextNode(data[headerRow]);
-
-    cell.appendChild(cellText);
-    cell.className = "sortable-table__cell ";
-    return cell;
+  createHeaderTemplate(headerConfig) {
+    return headerConfig
+      .map((config) => this.createHeaderCellTemplate(config))
+      .join("");
   }
 
-  createRowTitle(data) {
-    var cell = document.createElement("td");
-    var cellText = document.createTextNode(data.title);
-    cell.appendChild(cellText);
-    cell.className = "sortable-table__cell ";
-    return cell;
+  createHeaderCellTemplate(config) {
+    return `
+      <div class="sortable-table__cell" data-id="${config.id}" data-sortable="${config.sortable}" data-order="">
+        <span>${config.title}</span>
+        <span data-element="arrow" class="sortable-table__sort-arrow">
+          <span class="sort-arrow"></span>
+        </span>
+      </div>`;
   }
 
-  createRowQuantity(data) {
-    var cell = document.createElement("td");
-    var cellText = document.createTextNode(data.quantity);
-    cell.appendChild(cellText);
-    cell.className = "sortable-table__cell ";
-    return cell;
+  createBodyTemplate(headerConfig, dataItems) {
+    return dataItems
+      .map((item) => this.createRowTemplate(headerConfig, item))
+      .join("");
   }
 
-  createRowPrice(data) {
-    var cell = document.createElement("td");
-    var cellText = document.createTextNode(data.price);
-    cell.appendChild(cellText);
-    cell.className = "sortable-table__cell ";
-    return cell;
+  createRowTemplate(headerConfig, item) {
+    return `
+       <a href="/products/3d-ochki-epson-elpgs03" class="sortable-table__row">
+       ${headerConfig
+         .map((config) => this.createRowCellTemplate(config, item))
+         .join("")}
+      </a>`;
   }
 
-  createRowSales(data) {
-    var cell = document.createElement("td");
-    var cellText = document.createTextNode(data.sales);
-    cell.appendChild(cellText);
-    cell.className = "sortable-table__cell ";
-    return cell;
-  }
-
-  sort(fieldValue, orderValue) {
-    var colNum;
-    var k = orderValue === "asc" ? 1 : -1;
-
-    if (fieldValue === "title") {
-      colNum = 1;
-    } else if (fieldValue === "quantity") {
-      colNum = 2;
-    } else if (fieldValue === "price") {
-      colNum = 3;
-    } else if (fieldValue === "sales") {
-      colNum = 4;
-    } else {
-      return;
+  createRowCellTemplate(config, item) {
+    if (config.template) {
+      return config.template(item.images);
     }
 
-    let tbody = document.body.querySelector("tbody");
-    let rowsArray = Array.from(tbody.rows);
-    let compare;
+    const fieldName = config["id"];
+    const fieldValue = item[fieldName];
+    return `<div class="sortable-table__cell">${fieldValue}</div>`;
+  }
 
-    switch (typeof fieldValue) {
-      case "number":
-        compare = function (rowA, rowB) {
-          return (
-            k * (rowA.cells[colNum].innerHTML - rowB.cells[colNum].innerHTML)
-          );
-        };
-        break;
-      case "string":
-        compare = function (rowA, rowB) {
-          return rowA.cells[colNum].innerHTML > rowB.cells[colNum].innerHTML
-            ? k * 1
-            : k * -1;
-        };
-        break;
-    }
+  sort(fieldValue = "title", orderValue = "desc") {
+    const orders = {
+      desc: 1,
+      asc: -1,
+    };
 
-    rowsArray.sort(compare);
+    const sortedData = [...this.data].sort((itemA, itemB) => {
+      const k = orders[orderValue];
+      const valueA = itemA[fieldValue];
+      const valueB = itemB[fieldValue];
+      if (typeof valueA === "string") {
+        return (
+          k * valueB.localeCompare(valueA, "ru-en", { caseFirst: "upper" })
+        );
+      }
 
-    tbody.append(...rowsArray);
+      return k * (valueB - valueA);
+    });
+
+    let sortElem = document.querySelector(`[data-id = ${fieldValue}]`);
+    sortElem.dataset.order = orderValue;
+    this.subElements.body.innerHTML = this.createBodyTemplate(
+      this.headerConfig,
+      sortedData
+    );
   }
 
   remove() {
