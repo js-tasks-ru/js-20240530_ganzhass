@@ -1,7 +1,7 @@
 export default class NotificationMessage {
   static currVisibleComponent;
   element;
-  constructor(message = "Hello", { duration = 2000, type = "success" }) {
+  constructor(message = "Hello", { duration = 2000, type = "success" } = {}) {
     this.message = message;
     this.duration = duration;
     this.type = type;
